@@ -12,11 +12,6 @@ export default defineConfig({
       input: {
         app: './index.html',
       },
-      output: {
-        entryFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
-        chunkFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
-        assetFileNames: `assets/[name]-[hash]-${Date.now()}.[ext]`
-      }
     }
   }
 })
