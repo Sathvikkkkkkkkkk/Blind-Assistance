@@ -56,7 +56,6 @@ header {
   justify-content: space-between;
   align-items: center;
   pointer-events: none;
-  /* Let clicks pass through to video if needed */
 }
 
 h1 {
@@ -104,6 +103,11 @@ video {
   object-fit: cover;
 }
 
+/* Mirror mode for front camera */
+.mirror-mode video {
+  transform: scaleX(-1);
+}
+
 canvas {
   position: absolute;
   top: 0;
@@ -133,19 +137,63 @@ canvas {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  text-align: center;
+  width: max-content;
+  max-width: 90%;
 }
 
-.status-dot {
-  width: 8px;
-  height: 8px;
+/* Play Button Overlay */
+.play-btn-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.big-start-btn {
+  background: var(--accent-primary);
+  color: #000;
+  font-size: 1.5rem;
+  font-weight: bold;
+  padding: 20px 40px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 0 30px rgba(255, 214, 0, 0.4);
+}
+
+.error-text {
+  color: #ff3b30;
+  margin-top: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.camera-flip-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: var(--text-secondary);
-}
-
-.status-dot.active {
-  background: var(--success-color);
-  box-shadow: 0 0 10px var(--success-color);
+  font-size: 1.2rem;
+  cursor: pointer;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Floating Controls */
@@ -156,56 +204,57 @@ canvas {
   transform: translateX(-50%);
   width: 90%;
   max-width: 500px;
-
   background: var(--glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: var(--glass-border);
   border-radius: var(--radius-lg);
   padding: 20px;
-
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
   z-index: 30;
   box-shadow: var(--shadow-lg);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.controls.collapsed {
-  transform: translateX(-50%) translateY(150%);
-}
-
-.select-container {
+/* Mode Selector Scrolling */
+.mode-selector {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 5px;
   width: 100%;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.select-label {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
-  display: block;
-  font-weight: 500;
+.mode-selector::-webkit-scrollbar {
+  display: none;
 }
 
-.object-select {
-  width: 100%;
-  padding: 14px;
-  font-size: 1.1rem;
-  background: rgba(0, 0, 0, 0.4);
-  color: white;
+.mode-btn {
+  flex: 0 0 auto;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-md);
-  outline: none;
+  border-radius: 20px;
+  color: var(--text-secondary);
   font-family: var(--font-main);
-  appearance: none;
-  /* Remove default arrow */
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 15px center;
-  background-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
+.mode-btn.active {
+  background: var(--accent-primary);
+  color: black;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 15px rgba(255, 214, 0, 0.3);
+  transform: scale(1.05);
+}
+
+/* Button Group Base */
 .button-group {
   display: flex;
   gap: 12px;
@@ -220,8 +269,11 @@ canvas {
   font-weight: 700;
   text-transform: uppercase;
   cursor: pointer;
-  transition: transform 0.1s, filter 0.2s;
+  transition: transform 0.1s;
   font-family: var(--font-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-main:active {
@@ -242,7 +294,6 @@ canvas {
 
 .btn-voice {
   width: 60px;
-  /* Square */
   border: none;
   border-radius: var(--radius-md);
   background: #2a2a2a;
@@ -259,20 +310,20 @@ canvas {
 .btn-voice.listening {
   background: var(--danger-color);
   box-shadow: 0 0 20px rgba(255, 59, 48, 0.6);
+  animation: pulse-red 1.5s infinite;
 }
 
-/* Animations */
-@keyframes pulse {
+@keyframes pulse-red {
   0% {
-    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7);
   }
 
-  50% {
-    transform: scale(1.05);
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 59, 48, 0);
   }
 
   100% {
-    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0);
   }
 }
 
@@ -378,189 +429,14 @@ input:checked+.slider:before {
   transform: translateX(22px);
 }
 
-body {
-  margin: 0;
+/* Utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
   padding: 0;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  font-family: var(--font-main);
+  margin: -1px;
   overflow: hidden;
-  /* Prevent scrolling */
-}
-
-.app-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100vw;
-  position: relative;
-}
-
-header {
-  padding: 1rem;
-  background: #1a1a1a;
-  text-align: center;
-  border-bottom: 2px solid var(--accent-color);
-  z-index: 10;
-}
-
-h1 {
-  margin: 0;
-  font-size: 1.5rem;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--accent-color);
-}
-
-main {
-  flex: 1;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #000;
-}
-
-/* Camera and Overlay */
-.camera-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-video {
-  /* Ensure video fills the screen but maintains aspect ratio logic if needed, 
-     but for blind assistance, we usually want full coverage. 
-     We'll rely on object fit. */
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-canvas {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 5;
-}
-
-/* Controls / Footer */
-.controls {
-  padding: 1.5rem;
-  background: #1a1a1a;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  border-top: 2px solid var(--accent-color);
-  z-index: 10;
-}
-
-.select-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-label {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: var(--accent-color);
-}
-
-.object-select {
-  padding: 10px;
-  font-size: 1rem;
-  background: #333;
-  color: #fff;
-  border: 1px solid var(--accent-color);
-  border-radius: 5px;
-}
-
-button {
-  background: var(--accent-color);
-  color: #000;
-  border: none;
-  padding: 15px 30px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  border-radius: 8px;
-  cursor: pointer;
-  text-transform: uppercase;
-  transition: transform 0.1s, background 0.2s;
-  width: 100%;
-  max-width: 300px;
-}
-
-button:active {
-  transform: scale(0.95);
-}
-
-button:focus {
-  outline: 4px solid #fff;
-}
-
-button.stop {
-  background: var(--error-color);
-  color: #fff;
-}
-
-/* Status Indicator */
-
-.status-indicator {
-  position: absolute;
-  top: 80px;
-  left: 20px;
-  background: rgba(0, 0, 0, 0.8);
-  padding: 10px 20px;
-  border-radius: 20px;
-  border: 1px solid var(--accent-color);
-  z-index: 20;
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.button-group {
-  display: flex;
-  gap: 1rem;
-  width: 100%;
-  max-width: 600px;
-  justify-content: center;
-}
-
-.voice-btn {
-  background: #333;
-  color: var(--accent-color);
-  border: 2px solid var(--accent-color);
-}
-
-.voice-btn.listening {
-  background: #ff0000;
-  color: #ffffff;
-  border-color: #ff0000;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
-  }
-
-  70% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
-  }
-
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
-  }
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
