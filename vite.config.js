@@ -10,8 +10,13 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        app: './index.html', // Ensure index.html is entry
+        app: './index.html',
       },
+      output: {
+        entryFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
+        chunkFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
+        assetFileNames: `assets/[name]-[hash]-${Date.now()}.[ext]`
+      }
     }
   }
 })
